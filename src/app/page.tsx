@@ -107,13 +107,13 @@ function emptyMetrics() {
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  idle: '空闲',
-  pending: '等待',
-  connecting: '连接中',
-  streaming: '流式中',
-  done: '完成',
-  error: '错误',
-  aborted: '已中止',
+  idle: 'Idle',
+  pending: 'Pending',
+  connecting: 'Connecting',
+  streaming: 'Streaming',
+  done: 'Done',
+  error: 'Error',
+  aborted: 'Aborted',
 };
 
 const STATUS_COLOR: Record<string, string> = {
@@ -133,7 +133,7 @@ export default function Home() {
   const [awsConfigured, setAwsConfigured] = useState(false);
   const [newCustom, setNewCustom] = useState({ name: '', baseUrl: '', apiKey: '', model: '' });
   const [systemPrompt, setSystemPrompt] = useState('');
-  const [userPrompt, setUserPrompt] = useState('用三句话介绍大语言模型的流式输出。');
+  const [userPrompt, setUserPrompt] = useState('Explain streaming output in large language models in three sentences.');
   const [maxTokens, setMaxTokens] = useState(512);
   const [temperature, setTemperature] = useState(0.7);
   const [runs, setRuns] = useState<Record<string, RunState>>({});
@@ -195,7 +195,7 @@ export default function Home() {
       try {
         name = new URL(baseUrl).hostname;
       } catch {
-        name = '自定义供应商';
+        name = 'Custom provider';
       }
     }
     saveCustoms([
@@ -222,7 +222,7 @@ export default function Home() {
           if (e.target.value) onPick(e.target.value);
         }}
       >
-        <option value="">从 .env 选择</option>
+        <option value="">From .env</option>
         {envKeys.map((k) => (
           <option key={k.name} value={k.value}>
             {k.name}
@@ -433,16 +433,16 @@ export default function Home() {
         const missing =
           config.auth === 'gcp-oauth'
             ? !gcpReady(form)
-              ? '请先填写 Project ID、Location 和 Service Account JSON'
+              ? 'Fill in Project ID, Location and Service Account JSON first'
               : null
             : config.auth === 'aws-sigv4'
               ? !awsReady(form, awsConfigured)
                 ? awsConfigured
-                  ? '请先填写 Region'
-                  : '请先填写 Region、Access Key ID 和 Secret Access Key（或配置服务端 AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY）'
+                  ? 'Region is required'
+                  : 'Fill in Region, Access Key ID and Secret Access Key (or set server-side AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY)'
                 : null
               : !(form.baseUrl.trim() && form.apiKey.trim() && form.model.trim())
-                ? '请先填写 baseUrl、API Key 和模型名'
+                ? 'Fill in baseUrl, API Key and model first'
                 : null;
         if (missing) {
           updateRun(config.id, {
@@ -476,16 +476,16 @@ export default function Home() {
 
       <header className="mb-10">
         <h1 className="bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent">
-          LLM 供应商基准测试
+          LLM Provider Benchmark
         </h1>
         <p className="mt-2 text-sm text-gray-500">
-          同一模型、同一 prompt，并发调用多个供应商的 API，实时对比 TTFT / 吞吐等指标。
+          Fire the same model and prompt at multiple LLM providers concurrently; compare TTFT / throughput in real time.
         </p>
       </header>
 
       {/* Provider configuration */}
       <section className="mb-10">
-        <h2 className="mb-4 text-lg font-extrabold tracking-tight">供应商</h2>
+        <h2 className="mb-4 text-lg font-extrabold tracking-tight">Providers</h2>
         <div className="space-y-3">
           {PROVIDERS.map((p) => {
             const form = forms[p.id];
@@ -535,7 +535,7 @@ export default function Home() {
                       }}
                     />
                     <textarea
-                      placeholder="粘贴 Service Account JSON 或其 base64 编码（如 GCP_CREDENTIALS_BASE64）"
+                      placeholder="Paste Service Account JSON or its base64 encoding (e.g. GCP_CREDENTIALS_BASE64)"
                       rows={2}
                       className="w-full rounded-xl border border-violet-100 bg-white/80 px-2.5 py-1.5 font-mono text-xs text-foreground placeholder:text-gray-400 transition focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-200"
                       value={form.gcpSa}
@@ -549,7 +549,7 @@ export default function Home() {
                   <>
                     <input
                       type="text"
-                      placeholder="Region（如 us-east-1）"
+                      placeholder="Region (e.g. us-east-1)"
                       className={`${INP} w-32`}
                       value={form.awsRegion}
                       onChange={(e) => {
@@ -579,12 +579,12 @@ export default function Home() {
                     />
                     {awsConfigured && (
                       <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                        已配置 .env 凭证，可留空
+                        .env credentials configured; leave blank
                       </span>
                     )}
                     <input
                       type="password"
-                      placeholder="Session Token（可选，临时凭证）"
+                      placeholder="Session Token (optional, temp credentials)"
                       className={`${INP} w-44`}
                       value={form.awsSessionToken}
                       onChange={(e) => {
@@ -632,7 +632,7 @@ export default function Home() {
                     {p.baseUrlEditable && (
                       <input
                         type="text"
-                        placeholder="baseUrl（替换 {account_id}/{gateway_id}）"
+                        placeholder="baseUrl (replace {account_id}/{gateway_id})"
                         className={`${INP} min-w-0 flex-1`}
                         value={form.baseUrl}
                         onChange={(e) => {
@@ -685,26 +685,26 @@ export default function Home() {
               <button
                 onClick={() => removeCustom(c.id)}
                 className="rounded-full px-3 py-1 text-sm font-medium text-rose-500 transition hover:bg-rose-50"
-                title="删除该供应商"
+                title="Delete this provider"
               >
-                删除
+                Delete
               </button>
             </div>
           ))}
 
           {/* Add-custom-provider form */}
           <div className="flex flex-wrap items-center gap-3 rounded-2xl border-2 border-dashed border-violet-200 bg-white/40 px-4 py-3">
-            <span className="w-44 text-sm font-medium text-gray-400">自定义供应商</span>
+            <span className="w-44 text-sm font-medium text-gray-400">Custom provider</span>
             <input
               type="text"
-              placeholder="名称（可空，取 baseUrl 主机名）"
+              placeholder="Name (optional; defaults to baseUrl host)"
               className={`${INP_TEXT} w-44`}
               value={newCustom.name}
               onChange={(e) => setNewCustom({ ...newCustom, name: e.target.value })}
             />
             <input
               type="text"
-              placeholder="baseUrl，如 https://api.example.com/v1"
+              placeholder="baseUrl, e.g. https://api.example.com/v1"
               className={`${INP} min-w-0 flex-1`}
               value={newCustom.baseUrl}
               onChange={(e) => setNewCustom({ ...newCustom, baseUrl: e.target.value })}
@@ -718,7 +718,7 @@ export default function Home() {
             />
             <input
               type="text"
-              placeholder="模型名"
+              placeholder="Model name"
               className={`${INP} w-56`}
               value={newCustom.model}
               onChange={(e) => setNewCustom({ ...newCustom, model: e.target.value })}
@@ -728,7 +728,7 @@ export default function Home() {
               disabled={!newCustom.baseUrl.trim() || !newCustom.model.trim()}
               className="rounded-full bg-violet-600 px-4 py-1.5 text-sm font-bold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
-              + 添加
+              + Add
             </button>
           </div>
         </div>
@@ -739,7 +739,7 @@ export default function Home() {
         <h2 className="mb-4 text-lg font-extrabold tracking-tight">Prompt</h2>
         <div className="space-y-4 rounded-3xl border border-violet-100 bg-white/80 p-5 shadow-sm shadow-violet-100/60">
           <textarea
-            placeholder="System prompt（可选）"
+            placeholder="System prompt (optional)"
             rows={2}
             className="w-full rounded-2xl border border-violet-100 bg-white/80 px-4 py-3 text-sm text-foreground placeholder:text-gray-400 transition focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-200"
             value={systemPrompt}
@@ -786,14 +786,14 @@ export default function Home() {
             disabled={enabledCount === 0}
             className="animate-gradient-pan rounded-full bg-gradient-to-r from-pink-400 via-violet-400 to-sky-400 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-violet-300/50 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
           >
-            运行（{enabledCount} 家供应商）
+            Run ({enabledCount} providers)
           </button>
         ) : (
           <button
             onClick={handleAbort}
             className="rounded-full bg-rose-100 px-8 py-3 text-sm font-bold text-rose-600 transition hover:bg-rose-200 active:scale-95"
           >
-            中止
+            Abort
           </button>
         )}
       </section>
@@ -801,7 +801,7 @@ export default function Home() {
       {/* Metrics cards */}
       {Object.keys(runs).length > 0 && (
         <section>
-          <h2 className="mb-4 text-lg font-extrabold tracking-tight">结果</h2>
+          <h2 className="mb-4 text-lg font-extrabold tracking-tight">Results</h2>
           <div className="grid gap-4 md:grid-cols-2">
             {/* Unified card source: builtin providers + custom entries that have a run. */}
             {[
@@ -840,25 +840,25 @@ export default function Home() {
                         <dd className="font-mono text-sm font-semibold">{fmtMs(m.ttfbMs)}</dd>
                         <dt className="text-xs text-gray-400">TTFT</dt>
                         <dd className="font-mono text-sm font-semibold">{fmtMs(m.ttftMs)}</dd>
-                        <dt className="text-xs text-gray-400">总耗时</dt>
+                        <dt className="text-xs text-gray-400">Total time</dt>
                         <dd className="font-mono text-sm font-semibold">{fmtMs(m.totalMs)}</dd>
-                        <dt className="text-xs text-gray-400">输出 tokens</dt>
+                        <dt className="text-xs text-gray-400">Output tokens</dt>
                         <dd className="font-mono text-sm font-semibold">
                           {m.outputTokens}
                           {m.tokensEstimated && m.outputTokens > 0 && (
-                            <span className="ml-1 text-xs font-normal text-amber-500">（估算）</span>
+                            <span className="ml-1 text-xs font-normal text-amber-500">(estimated)</span>
                           )}
                         </dd>
-                        <dt className="text-xs text-gray-400">吞吐</dt>
+                        <dt className="text-xs text-gray-400">Throughput</dt>
                         <dd className="font-mono text-sm font-semibold">{fmtRate(m.tokensPerSec)}</dd>
-                        <dt className="text-xs text-gray-400">decode 速率</dt>
+                        <dt className="text-xs text-gray-400">Decode rate</dt>
                         <dd className="font-mono text-sm font-semibold">{fmtRate(m.decodeTokensPerSec)}</dd>
                       </dl>
                     )}
                     {run.output && (
                       <details className="mt-4">
                         <summary className="cursor-pointer text-sm font-medium text-violet-500 transition hover:text-violet-600">
-                          输出原文
+                          Raw output
                         </summary>
                         <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-2xl bg-violet-50/70 p-3 text-xs leading-relaxed">
                           {run.output}

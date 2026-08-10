@@ -361,10 +361,15 @@ export async function POST(req: NextRequest) {
   } else if (aws) {
     // AWS SigV4 path: fill the {region} placeholder and sign the request
     // with the user's IAM credentials. Fields left blank in the UI fall back
-    // to AWS_* server-side env vars, so keys never have to touch the browser.
-    const accessKeyId = aws.accessKeyId.trim() || process.env.AWS_ACCESS_KEY_ID || '';
-    const secretAccessKey = aws.secretAccessKey.trim() || process.env.AWS_SECRET_ACCESS_KEY || '';
-    const sessionToken = aws.sessionToken?.trim() || process.env.AWS_SESSION_TOKEN || undefined;
+    // to AWS_* server-side env vars — but only when LPB_ENABLE_SERVER_KEYS=1
+    // (local dev opt-in), so a public deployment can never be used to spend
+    // the host's AWS bill.
+    const serverKeysEnabled = process.env.LPB_ENABLE_SERVER_KEYS === '1';
+    const accessKeyId = aws.accessKeyId.trim() || (serverKeysEnabled ? process.env.AWS_ACCESS_KEY_ID : '') || '';
+    const secretAccessKey =
+      aws.secretAccessKey.trim() || (serverKeysEnabled ? process.env.AWS_SECRET_ACCESS_KEY : '') || '';
+    const sessionToken =
+      aws.sessionToken?.trim() || (serverKeysEnabled ? process.env.AWS_SESSION_TOKEN : undefined) || undefined;
     if (!aws.region || !accessKeyId || !secretAccessKey) {
       return NextResponse.json(
         { error: 'aws requires region, accessKeyId and secretAccessKey (or AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY env vars)' },

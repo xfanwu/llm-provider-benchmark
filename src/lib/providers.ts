@@ -50,7 +50,7 @@ export const PROVIDERS: ProviderConfig[] = [
     // developers.cloudflare.com/ai/models (e.g. google/gemini-3.6-flash).
     // Auth is a Cloudflare API token, not the upstream provider key.
     id: 'cloudflare-unified',
-    name: 'Cloudflare 统一端点',
+    name: 'Cloudflare Unified',
     protocol: 'openai-compatible',
     auth: 'api-key',
     baseUrl: 'https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1',

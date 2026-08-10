@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LLM 供应商基准测试",
-  description: "对同一模型并发调用多个 LLM 供应商，实时对比 TTFT / 吞吐",
+  title: "LLM Provider Benchmark",
+  description: "Compare TTFT / throughput across LLM providers with the same prompt, in real time",
 };
 
 export default function RootLayout({
@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="zh-CN"
+      lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
