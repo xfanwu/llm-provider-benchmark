@@ -42,6 +42,14 @@ interface CustomProvider {
   enabled: boolean;
 }
 
+// Pastel design system (shared classes).
+const INP =
+  'rounded-xl border border-violet-100 bg-white/80 px-2.5 py-1.5 font-mono text-sm text-foreground placeholder:text-gray-400 transition focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-200';
+const INP_TEXT =
+  'rounded-xl border border-violet-100 bg-white/80 px-2.5 py-1.5 text-sm text-foreground placeholder:text-gray-400 transition focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-200';
+const CARD =
+  'flex flex-wrap items-center gap-3 rounded-2xl border border-violet-100 bg-white/80 px-4 py-3 shadow-sm shadow-violet-100/60 transition-all hover:-translate-y-0.5 hover:shadow-md hover:shadow-violet-200/60';
+
 // Adapters so custom entries flow through the exact same run/render logic as
 // builtin ProviderConfig entries.
 function customToConfig(c: CustomProvider): ProviderConfig {
@@ -109,13 +117,13 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const STATUS_COLOR: Record<string, string> = {
-  idle: 'bg-gray-200 text-gray-600',
-  pending: 'bg-gray-200 text-gray-600',
-  connecting: 'bg-yellow-100 text-yellow-800',
-  streaming: 'bg-blue-100 text-blue-800',
-  done: 'bg-green-100 text-green-800',
-  error: 'bg-red-100 text-red-800',
-  aborted: 'bg-orange-100 text-orange-800',
+  idle: 'bg-gray-100 text-gray-500',
+  pending: 'bg-gray-100 text-gray-500',
+  connecting: 'bg-amber-100 text-amber-700',
+  streaming: 'bg-sky-100 text-sky-700',
+  done: 'bg-emerald-100 text-emerald-700',
+  error: 'bg-rose-100 text-rose-700',
+  aborted: 'bg-orange-100 text-orange-700',
 };
 
 export default function Home() {
@@ -150,6 +158,7 @@ export default function Home() {
         awsSessionToken: localStorage.getItem(LS_AWS_TOKEN(p.id)) ?? '',
       };
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is client-only; a lazy initializer would desync SSR HTML
     setForms(initial);
     try {
       setCustoms(JSON.parse(localStorage.getItem(LS_CUSTOM) ?? '[]') as CustomProvider[]);
@@ -207,7 +216,7 @@ export default function Home() {
     if (envKeys.length === 0) return null;
     return (
       <select
-        className="rounded border border-gray-300 px-1 py-1 text-xs text-gray-600"
+        className="rounded-full border border-violet-100 bg-white/80 px-2 py-1 text-xs text-violet-600"
         value=""
         onChange={(e) => {
           if (e.target.value) onPick(e.target.value);
@@ -457,40 +466,48 @@ export default function Home() {
     PROVIDERS.filter((p) => forms[p.id]?.enabled).length + customs.filter((c) => c.enabled).length;
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold">LLM 供应商基准测试</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          对同一模型、同一 prompt，并发调用多个供应商的 API，实时对比 TTFT / 吞吐等指标。
+    <main className="relative mx-auto max-w-6xl px-4 py-10">
+      {/* Decorative pastel blobs */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-pink-200/50 blur-3xl" />
+        <div className="absolute -right-32 top-1/3 h-96 w-96 rounded-full bg-sky-200/50 blur-3xl" />
+        <div className="absolute -bottom-32 left-1/3 h-96 w-96 rounded-full bg-violet-200/50 blur-3xl" />
+      </div>
+
+      <header className="mb-10">
+        <h1 className="bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent">
+          LLM 供应商基准测试
+        </h1>
+        <p className="mt-2 text-sm text-gray-500">
+          同一模型、同一 prompt，并发调用多个供应商的 API，实时对比 TTFT / 吞吐等指标。
         </p>
       </header>
 
       {/* Provider configuration */}
-      <section className="mb-8">
-        <h2 className="mb-3 text-lg font-semibold">供应商</h2>
-        <div className="space-y-2">
+      <section className="mb-10">
+        <h2 className="mb-4 text-lg font-extrabold tracking-tight">供应商</h2>
+        <div className="space-y-3">
           {PROVIDERS.map((p) => {
             const form = forms[p.id];
             if (!form) return null;
             return (
-              <div
-                key={p.id}
-                className="flex flex-wrap items-center gap-3 rounded-md border border-gray-200 bg-white px-3 py-2"
-              >
-                <label className="flex w-44 items-center gap-2">
+              <div key={p.id} className={CARD}>
+                <label className="flex w-44 cursor-pointer items-center gap-2.5">
                   <input
                     type="checkbox"
+                    className="peer sr-only"
                     checked={form.enabled}
                     onChange={(e) => updateForm(p.id, { enabled: e.target.checked })}
                   />
-                  <span className="font-medium">{p.name}</span>
+                  <span className="relative h-6 w-11 shrink-0 rounded-full bg-gray-200 transition-colors peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-violet-400 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5" />
+                  <span className="font-bold">{p.name}</span>
                 </label>
                 {p.auth === 'gcp-oauth' ? (
                   <>
                     <input
                       type="text"
                       placeholder="Project ID"
-                      className="w-44 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                      className={`${INP} w-44`}
                       value={form.gcpProject}
                       onChange={(e) => {
                         updateForm(p.id, { gcpProject: e.target.value });
@@ -500,7 +517,7 @@ export default function Home() {
                     <input
                       type="text"
                       placeholder="Location"
-                      className="w-28 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                      className={`${INP} w-28`}
                       value={form.gcpLocation}
                       onChange={(e) => {
                         updateForm(p.id, { gcpLocation: e.target.value });
@@ -510,7 +527,7 @@ export default function Home() {
                     <input
                       type="text"
                       placeholder="model"
-                      className="w-72 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                      className={`${INP} w-72`}
                       value={form.model}
                       onChange={(e) => {
                         updateForm(p.id, { model: e.target.value });
@@ -520,7 +537,7 @@ export default function Home() {
                     <textarea
                       placeholder="粘贴 Service Account JSON 或其 base64 编码（如 GCP_CREDENTIALS_BASE64）"
                       rows={2}
-                      className="w-full rounded border border-gray-300 px-2 py-1 font-mono text-xs"
+                      className="w-full rounded-xl border border-violet-100 bg-white/80 px-2.5 py-1.5 font-mono text-xs text-foreground placeholder:text-gray-400 transition focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-200"
                       value={form.gcpSa}
                       onChange={(e) => {
                         updateForm(p.id, { gcpSa: e.target.value });
@@ -533,7 +550,7 @@ export default function Home() {
                     <input
                       type="text"
                       placeholder="Region（如 us-east-1）"
-                      className="w-32 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                      className={`${INP} w-32`}
                       value={form.awsRegion}
                       onChange={(e) => {
                         updateForm(p.id, { awsRegion: e.target.value });
@@ -543,7 +560,7 @@ export default function Home() {
                     <input
                       type="password"
                       placeholder="Access Key ID"
-                      className="w-52 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                      className={`${INP} w-52`}
                       value={form.awsAccessKeyId}
                       onChange={(e) => {
                         updateForm(p.id, { awsAccessKeyId: e.target.value });
@@ -553,7 +570,7 @@ export default function Home() {
                     <input
                       type="password"
                       placeholder="Secret Access Key"
-                      className="w-52 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                      className={`${INP} w-52`}
                       value={form.awsSecretAccessKey}
                       onChange={(e) => {
                         updateForm(p.id, { awsSecretAccessKey: e.target.value });
@@ -561,14 +578,14 @@ export default function Home() {
                       }}
                     />
                     {awsConfigured && (
-                      <span className="rounded bg-green-50 px-2 py-1 text-xs text-green-700">
+                      <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                         已配置 .env 凭证，可留空
                       </span>
                     )}
                     <input
                       type="password"
                       placeholder="Session Token（可选，临时凭证）"
-                      className="w-44 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                      className={`${INP} w-44`}
                       value={form.awsSessionToken}
                       onChange={(e) => {
                         updateForm(p.id, { awsSessionToken: e.target.value });
@@ -578,7 +595,7 @@ export default function Home() {
                     <input
                       type="text"
                       placeholder="model"
-                      className="w-72 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                      className={`${INP} w-72`}
                       value={form.model}
                       onChange={(e) => {
                         updateForm(p.id, { model: e.target.value });
@@ -591,7 +608,7 @@ export default function Home() {
                     <input
                       type="password"
                       placeholder="API Key"
-                      className="w-56 rounded border border-gray-300 px-2 py-1 text-sm"
+                      className={`${INP_TEXT} w-56`}
                       value={form.apiKey}
                       onChange={(e) => {
                         updateForm(p.id, { apiKey: e.target.value });
@@ -605,7 +622,7 @@ export default function Home() {
                     <input
                       type="text"
                       placeholder="model"
-                      className="w-72 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                      className={`${INP} w-72`}
                       value={form.model}
                       onChange={(e) => {
                         updateForm(p.id, { model: e.target.value });
@@ -616,7 +633,7 @@ export default function Home() {
                       <input
                         type="text"
                         placeholder="baseUrl（替换 {account_id}/{gateway_id}）"
-                        className="min-w-0 flex-1 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                        className={`${INP} min-w-0 flex-1`}
                         value={form.baseUrl}
                         onChange={(e) => {
                           updateForm(p.id, { baseUrl: e.target.value });
@@ -632,22 +649,21 @@ export default function Home() {
 
           {/* Custom providers: same row layout, always api-key auth, baseUrl editable, plus delete. */}
           {customs.map((c) => (
-            <div
-              key={c.id}
-              className="flex flex-wrap items-center gap-3 rounded-md border border-gray-200 bg-white px-3 py-2"
-            >
-              <label className="flex w-44 items-center gap-2">
+            <div key={c.id} className={CARD}>
+              <label className="flex w-44 cursor-pointer items-center gap-2.5">
                 <input
                   type="checkbox"
+                  className="peer sr-only"
                   checked={c.enabled}
                   onChange={(e) => updateCustom(c.id, { enabled: e.target.checked })}
                 />
-                <span className="font-medium">{c.name}</span>
+                <span className="relative h-6 w-11 shrink-0 rounded-full bg-gray-200 transition-colors peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-violet-400 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5" />
+                <span className="font-bold">{c.name}</span>
               </label>
               <input
                 type="password"
                 placeholder="API Key"
-                className="w-56 rounded border border-gray-300 px-2 py-1 text-sm"
+                className={`${INP_TEXT} w-56`}
                 value={c.apiKey}
                 onChange={(e) => updateCustom(c.id, { apiKey: e.target.value })}
               />
@@ -655,20 +671,20 @@ export default function Home() {
               <input
                 type="text"
                 placeholder="model"
-                className="w-72 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                className={`${INP} w-72`}
                 value={c.model}
                 onChange={(e) => updateCustom(c.id, { model: e.target.value })}
               />
               <input
                 type="text"
                 placeholder="baseUrl"
-                className="min-w-0 flex-1 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+                className={`${INP} min-w-0 flex-1`}
                 value={c.baseUrl}
                 onChange={(e) => updateCustom(c.id, { baseUrl: e.target.value })}
               />
               <button
                 onClick={() => removeCustom(c.id)}
-                className="rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50"
+                className="rounded-full px-3 py-1 text-sm font-medium text-rose-500 transition hover:bg-rose-50"
                 title="删除该供应商"
               >
                 删除
@@ -677,40 +693,40 @@ export default function Home() {
           ))}
 
           {/* Add-custom-provider form */}
-          <div className="flex flex-wrap items-center gap-3 rounded-md border border-dashed border-gray-300 px-3 py-2">
-            <span className="w-44 text-sm text-gray-500">自定义供应商</span>
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border-2 border-dashed border-violet-200 bg-white/40 px-4 py-3">
+            <span className="w-44 text-sm font-medium text-gray-400">自定义供应商</span>
             <input
               type="text"
               placeholder="名称（可空，取 baseUrl 主机名）"
-              className="w-44 rounded border border-gray-300 px-2 py-1 text-sm"
+              className={`${INP_TEXT} w-44`}
               value={newCustom.name}
               onChange={(e) => setNewCustom({ ...newCustom, name: e.target.value })}
             />
             <input
               type="text"
               placeholder="baseUrl，如 https://api.example.com/v1"
-              className="min-w-0 flex-1 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+              className={`${INP} min-w-0 flex-1`}
               value={newCustom.baseUrl}
               onChange={(e) => setNewCustom({ ...newCustom, baseUrl: e.target.value })}
             />
             <input
               type="password"
               placeholder="API Key"
-              className="w-48 rounded border border-gray-300 px-2 py-1 text-sm"
+              className={`${INP_TEXT} w-48`}
               value={newCustom.apiKey}
               onChange={(e) => setNewCustom({ ...newCustom, apiKey: e.target.value })}
             />
             <input
               type="text"
               placeholder="模型名"
-              className="w-56 rounded border border-gray-300 px-2 py-1 font-mono text-sm"
+              className={`${INP} w-56`}
               value={newCustom.model}
               onChange={(e) => setNewCustom({ ...newCustom, model: e.target.value })}
             />
             <button
               onClick={addCustom}
               disabled={!newCustom.baseUrl.trim() || !newCustom.model.trim()}
-              className="rounded bg-gray-700 px-3 py-1 text-sm text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+              className="rounded-full bg-violet-600 px-4 py-1.5 text-sm font-bold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
               + 添加
             </button>
@@ -719,41 +735,41 @@ export default function Home() {
       </section>
 
       {/* Prompt configuration */}
-      <section className="mb-8">
-        <h2 className="mb-3 text-lg font-semibold">Prompt</h2>
-        <div className="space-y-3">
+      <section className="mb-10">
+        <h2 className="mb-4 text-lg font-extrabold tracking-tight">Prompt</h2>
+        <div className="space-y-4 rounded-3xl border border-violet-100 bg-white/80 p-5 shadow-sm shadow-violet-100/60">
           <textarea
             placeholder="System prompt（可选）"
             rows={2}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-2xl border border-violet-100 bg-white/80 px-4 py-3 text-sm text-foreground placeholder:text-gray-400 transition focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-200"
             value={systemPrompt}
             onChange={(e) => setSystemPrompt(e.target.value)}
           />
           <textarea
             placeholder="User prompt"
             rows={4}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            className="w-full rounded-2xl border border-violet-100 bg-white/80 px-4 py-3 text-sm text-foreground placeholder:text-gray-400 transition focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-200"
             value={userPrompt}
             onChange={(e) => setUserPrompt(e.target.value)}
           />
-          <div className="flex gap-6 text-sm">
-            <label className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-4 text-sm">
+            <label className="flex items-center gap-2 rounded-full bg-violet-50 px-4 py-2 font-medium text-violet-700">
               max_tokens
               <input
                 type="number"
-                className="w-24 rounded border border-gray-300 px-2 py-1"
+                className="w-24 rounded-full border border-violet-100 bg-white/80 px-2 py-1 text-center font-mono transition focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-200"
                 value={maxTokens}
                 onChange={(e) => setMaxTokens(Number(e.target.value))}
               />
             </label>
-            <label className="flex items-center gap-2">
+            <label className="flex items-center gap-2 rounded-full bg-pink-50 px-4 py-2 font-medium text-pink-700">
               temperature
               <input
                 type="number"
                 step="0.1"
                 min="0"
                 max="2"
-                className="w-24 rounded border border-gray-300 px-2 py-1"
+                className="w-24 rounded-full border border-violet-100 bg-white/80 px-2 py-1 text-center font-mono transition focus:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-200"
                 value={temperature}
                 onChange={(e) => setTemperature(Number(e.target.value))}
               />
@@ -763,19 +779,19 @@ export default function Home() {
       </section>
 
       {/* Run controls */}
-      <section className="mb-8 flex items-center gap-3">
+      <section className="mb-10 flex items-center gap-3">
         {!running ? (
           <button
             onClick={handleRun}
             disabled={enabledCount === 0}
-            className="rounded bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+            className="animate-gradient-pan rounded-full bg-gradient-to-r from-pink-400 via-violet-400 to-sky-400 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-violet-300/50 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
           >
             运行（{enabledCount} 家供应商）
           </button>
         ) : (
           <button
             onClick={handleAbort}
-            className="rounded bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700"
+            className="rounded-full bg-rose-100 px-8 py-3 text-sm font-bold text-rose-600 transition hover:bg-rose-200 active:scale-95"
           >
             中止
           </button>
@@ -785,7 +801,7 @@ export default function Home() {
       {/* Metrics cards */}
       {Object.keys(runs).length > 0 && (
         <section>
-          <h2 className="mb-3 text-lg font-semibold">结果</h2>
+          <h2 className="mb-4 text-lg font-extrabold tracking-tight">结果</h2>
           <div className="grid gap-4 md:grid-cols-2">
             {/* Unified card source: builtin providers + custom entries that have a run. */}
             {[
@@ -793,54 +809,65 @@ export default function Home() {
               ...customs.map((c) => ({ id: c.id, name: c.name, model: c.model })),
             ]
               .filter((p) => runs[p.id])
-              .map((p) => {
-              const run = runs[p.id];
-              const m = run.metrics;
-              return (
-                <div key={p.id} className="rounded-md border border-gray-200 bg-white p-4">
-                  <div className="mb-3 flex items-center justify-between">
-                    <div>
-                      <span className="font-semibold">{p.name}</span>
-                      <span className="ml-2 font-mono text-xs text-gray-500">{p.model}</span>
-                    </div>
-                    <span className={`rounded px-2 py-0.5 text-xs ${STATUS_COLOR[run.status]}`}>
-                      {STATUS_LABEL[run.status]}
-                    </span>
-                  </div>
-                  {run.status === 'error' ? (
-                    <p className="break-all text-sm text-red-700">{m.error}</p>
-                  ) : (
-                    <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                      <dt className="text-gray-500">TTFB</dt>
-                      <dd>{fmtMs(m.ttfbMs)}</dd>
-                      <dt className="text-gray-500">TTFT</dt>
-                      <dd>{fmtMs(m.ttftMs)}</dd>
-                      <dt className="text-gray-500">总耗时</dt>
-                      <dd>{fmtMs(m.totalMs)}</dd>
-                      <dt className="text-gray-500">输出 tokens</dt>
-                      <dd>
-                        {m.outputTokens}
-                        {m.tokensEstimated && m.outputTokens > 0 && (
-                          <span className="ml-1 text-xs text-gray-400">（估算）</span>
+              .map((p, i) => {
+                const run = runs[p.id];
+                const m = run.metrics;
+                return (
+                  <div
+                    key={p.id}
+                    className="animate-fade-up rounded-3xl border border-violet-100 bg-white/85 p-5 shadow-sm shadow-violet-100/60"
+                    style={{ animationDelay: `${i * 70}ms` }}
+                  >
+                    <div className="mb-4 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <span className="font-bold">{p.name}</span>
+                        <span className="ml-2 font-mono text-xs text-gray-400">{p.model}</span>
+                      </div>
+                      <span
+                        className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_COLOR[run.status]}`}
+                      >
+                        {run.status === 'streaming' && (
+                          <span className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-current" />
                         )}
-                      </dd>
-                      <dt className="text-gray-500">吞吐</dt>
-                      <dd>{fmtRate(m.tokensPerSec)}</dd>
-                      <dt className="text-gray-500">decode 速率</dt>
-                      <dd>{fmtRate(m.decodeTokensPerSec)}</dd>
-                    </dl>
-                  )}
-                  {run.output && (
-                    <details className="mt-3">
-                      <summary className="cursor-pointer text-sm text-gray-500">输出原文</summary>
-                      <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded bg-gray-50 p-2 text-xs">
-                        {run.output}
-                      </pre>
-                    </details>
-                  )}
-                </div>
-              );
-            })}
+                        {STATUS_LABEL[run.status]}
+                      </span>
+                    </div>
+                    {run.status === 'error' ? (
+                      <p className="break-all text-sm font-medium text-rose-600">{m.error}</p>
+                    ) : (
+                      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <dt className="text-xs text-gray-400">TTFB</dt>
+                        <dd className="font-mono text-sm font-semibold">{fmtMs(m.ttfbMs)}</dd>
+                        <dt className="text-xs text-gray-400">TTFT</dt>
+                        <dd className="font-mono text-sm font-semibold">{fmtMs(m.ttftMs)}</dd>
+                        <dt className="text-xs text-gray-400">总耗时</dt>
+                        <dd className="font-mono text-sm font-semibold">{fmtMs(m.totalMs)}</dd>
+                        <dt className="text-xs text-gray-400">输出 tokens</dt>
+                        <dd className="font-mono text-sm font-semibold">
+                          {m.outputTokens}
+                          {m.tokensEstimated && m.outputTokens > 0 && (
+                            <span className="ml-1 text-xs font-normal text-amber-500">（估算）</span>
+                          )}
+                        </dd>
+                        <dt className="text-xs text-gray-400">吞吐</dt>
+                        <dd className="font-mono text-sm font-semibold">{fmtRate(m.tokensPerSec)}</dd>
+                        <dt className="text-xs text-gray-400">decode 速率</dt>
+                        <dd className="font-mono text-sm font-semibold">{fmtRate(m.decodeTokensPerSec)}</dd>
+                      </dl>
+                    )}
+                    {run.output && (
+                      <details className="mt-4">
+                        <summary className="cursor-pointer text-sm font-medium text-violet-500 transition hover:text-violet-600">
+                          输出原文
+                        </summary>
+                        <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-2xl bg-violet-50/70 p-3 text-xs leading-relaxed">
+                          {run.output}
+                        </pre>
+                      </details>
+                    )}
+                  </div>
+                );
+              })}
           </div>
         </section>
       )}
