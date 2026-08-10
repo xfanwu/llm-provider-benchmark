@@ -2,6 +2,8 @@
 
 Fire the **same model and prompt** at multiple LLM providers concurrently and compare **TTFT (time to first token)**, **throughput (tokens/s)** and more, in real time — to help you pick the right provider.
 
+![LLM Provider Benchmark UI](public/screenshot.png)
+
 ## Features
 
 - Built-in providers: OpenRouter, Vercel AI Gateway, Cloudflare Unified, Together, Fireworks, Groq, DeepInfra, 302.AI, Vertex AI, AWS Bedrock
